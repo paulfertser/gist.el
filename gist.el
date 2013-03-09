@@ -243,15 +243,18 @@ for the gist."
     (let ((files (oref gist :files)))
       (setq multi (< 1 (length files)))
       (dolist (f files)
-        (let ((buffer (get-buffer-create (format "%s/%s" prefix
-                                                 (oref f :filename))))
-              (mode (car (rassoc (file-name-extension (oref f :filename))
-                                 gist-supported-modes-alist))))
+        (let* ((filename (format "%s/%s" prefix
+                                 (oref f :filename)))
+               (buffer (get-buffer-create filename))
+               (mode (car (rassoc (file-name-extension (oref f :filename))
+                                  gist-supported-modes-alist))))
           (with-current-buffer buffer
             (delete-region (point-min) (point-max))
+            (setq buffer-file-name filename)
             (insert (oref f :content))
-            (when (fboundp mode)
-              (funcall mode))
+            (if (fboundp mode)
+                (funcall mode)
+              (set-auto-mode))
             ;; set minor mode
             (gist-mode 1)
             (setq gist-id id
